@@ -1,2 +1,2 @@
-*.xml
-*.iml
+/.idea/*
+/database.sqlite3
