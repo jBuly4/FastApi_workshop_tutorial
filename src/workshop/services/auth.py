@@ -21,7 +21,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     return AuthService.validate_token(token)
 
 
-
 class AuthService:
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
@@ -47,7 +46,8 @@ class AuthService:
                     algorithms=[settings.jwt_algorithm],
             )
         except JWTError:
-            raise exception from None  #  Using raise ... from None lets you suppress the context being printed. (
+            raise exception from None
+            #  Using raise ... from None lets you suppress the context being printed. (
             # https://stackoverflow.com/questions/24752395/python-raise-from-usage)
 
         user_data = payload.get('user')
@@ -63,7 +63,7 @@ class AuthService:
     def create_token(cls, user: tables.User) -> Token:
         user_data = User.from_orm(user)
 
-        now = datetime.now()
+        now = datetime.utcnow()  # be aware that exception could raise because of time zones failures
 
         payload = {
             'iat': now,
