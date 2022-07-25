@@ -7,7 +7,9 @@ from fastapi import Response
 from fastapi import status
 
 from ..models.operations import Operation, OperationKind, OperationCreate, OperationUpdate
+from ..services.auth import get_current_user, User
 from ..services.operations import OperationService
+
 
 router = APIRouter(
         prefix='/operations',  # all handlers will work at paths path_from_root/operations/
@@ -47,43 +49,48 @@ router = APIRouter(
 # in docs of api you will see field where you need to choose filter
 @router.get('/', response_model=List[Operation])
 def get_operations(
-        kind: Optional[OperationKind] = None ,
+        kind: Optional[OperationKind] = None,
+        user: User = Depends(get_current_user),
         service: OperationService = Depends()
 ):
-    return service.get_list(kind=kind)
+    return service.get_list(user_id=user.id, kind=kind)
 
 
 @router.get('/{operation_id}', response_model=Operation)
 def get_operation(
         operation_id: int,
+        user: User = Depends(get_current_user),
         service: OperationService = Depends()
 ):
-    return service.get(operation_id)
+    return service.get(user_id=user.id, operation_id=operation_id)
 
 
 # need to refactor models
 @router.post('/', response_model=Operation)
 def create_operation(
         operation_data: OperationCreate,
+        user: User = Depends(get_current_user),
         service: OperationService = Depends()
 ):
-    return service.create(operation_data)
+    return service.create(user_id=user.id, operation_data=operation_data)
 
 
 @router.put('/{operation_id}', response_model=Operation)
 def update_operation(
         operation_id: int,
         operation_data: OperationUpdate,
+        user: User = Depends(get_current_user),
         service: OperationService = Depends()
 ):
-    return service.update(operation_id, operation_data)
+    return service.update(user_id=user.id, operation_id=operation_id, operation_data=operation_data)
 
 
 @router.delete('/{operation_id}')
 def delete_operation(
         operation_id: int,
+        user: User = Depends(get_current_user),
         service: OperationService = Depends()
 ):
-    service.delete(operation_id)
+    service.delete(user_id=user.id, operation_id=operation_id)
     # we need to return empty response. if we don't then will be a mistake because fastapi will try to return json
     return Response(status_code=status.HTTP_204_NO_CONTENT)
